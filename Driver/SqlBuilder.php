@@ -48,12 +48,12 @@ class SqlBuilder
         foreach ($data as $field => $val) {
             $key = 's_' . $field;
             if (is_array($val)) {
-                //支持字段增量，格式 key => ['+=/-=', 值]
-                if (isset($val[0]) && isset($val[1]) && in_array($val[0], ['+=', '-='], true) && is_numeric($val[1])) {
+                //支持字段增量和乘除，格式 key => ['+=|-=|*=|/=', 值]
+                if (isset($val[0]) && isset($val[1]) && in_array($val[0], ['+=', '-=', '*=', '/='], true) && is_numeric($val[1])) {
                     $sets[] = '`' . $field . '`' . ' = `' . $field . '` ' . substr($val[0], 0, 1) . ' :' . $key;
                     $params[$key] = $val[1];
                 } else {
-                    throw new \Exception('sql sets error', Code::SYSTEM_ERROR);
+                    throw new \Exception('sql sets error: ' . $field . ' = ' . json_encode($val), Code::SYSTEM_ERROR);
                 }
             } else {
                 $sets[] = '`' . $field . '`' . ' = :' . $key;

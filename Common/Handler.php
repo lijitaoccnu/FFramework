@@ -23,7 +23,7 @@ function _exception_handler($e)
 {
     $code = $e->getCode() ? $e->getCode() : Code::SYSTEM_ERROR;
 
-    FF::onError($code, $e->getMessage(), $e->getFile(), $e->getLine());
+    FF::onError($code, $e->getMessage(), $e->getFile(), $e->getLine(), $e->getTrace());
 }
 
 function _shutdown_handler()

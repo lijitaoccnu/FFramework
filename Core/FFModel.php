@@ -32,22 +32,24 @@ class FFModel
 
     /**
      * 插入一条数据到数据库
-     * @param $data
+     * @param array $data
+     * @param bool $delay
      * @return int
      */
-    public function insert($data)
+    public function insert($data, $delay = false)
     {
-        return $this->db()->insert($data)->execute();
+        return $this->db()->insert($data, $delay)->execute();
     }
 
     /**
      * 插入多条数据到数据库
      * @param array $data
+     * @param bool $delay
      * @return int
      */
-    public function insertMulti($data)
+    public function insertMulti($data, $delay = false)
     {
-        return $this->db()->insertMulti($data);
+        return $this->db()->insertMulti($data, $delay);
     }
 
     /**

@@ -40,7 +40,7 @@ class FFRouter
             if (isset($_SERVER['REQUEST_URI'])) {
                 $route = explode('?', $_SERVER['REQUEST_URI'])[0];
             }
-            if (!$route || $route == '/') {
+            if (!$route || $route == '/' || $route == '/index.php') {
                 $route = FF::getOptions()['route_default'];
                 if (!$route) $route = '/index/index';
             }
@@ -88,7 +88,8 @@ class FFRouter
 
         $routes = explode('/', $route);
 
-        if (count($routes) < 3) return null;
+        if (count($routes) < 2) return null;
+        if (count($routes) == 2) $routes[] = 'index';
 
         $method = array_pop($routes);
         $controller = ucfirst(array_pop($routes));

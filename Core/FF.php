@@ -286,23 +286,19 @@ class FF
             $method = self::getRouter()->getMethod();
             $response = call_user_func(array($controller, $method));
             if (is_int($response)) {
-                $error = array('code' => $response, 'message' => '');
+                $error = new \Exception('', $response);
             } elseif (is_string($response)) {
-                $error = array('code' => Code::FAILED, 'message' => $response);
+                $error = new \Exception($response, Code::FAILED);
             }
         } catch (\Exception $e) {
-            $code = $e->getCode() ? $e->getCode() : Code::SYSTEM_ERROR;
-            $error = array('code' => $code, 'message' => $e->getMessage());
-            Log::error($error['message']);
+            $error = $e;
         }
-
-        //记录请求日志
-        self::logRequest($error ? $error : $response);
 
         //响应输出
         if ($error) {
-            Output::error($error['code'], $error['message']);
+            self::onError($error->getCode(), $error->getMessage(), $error->getFile(), $error->getLine(), $error->getTrace());
         } else {
+            self::logRequest($response);
             Output::data($response);
         }
     }
@@ -317,6 +313,7 @@ class FF
 
         $logs = array(
             'cost' => (int)((microtime(true) - $_SERVER['REQUEST_TIME_FLOAT']) * 1000),
+            'request' => $_REQUEST,
             'params' => $controller ? $controller->getParams() : $_REQUEST,
             'response' => $response
         );
@@ -330,14 +327,19 @@ class FF
      * @param $message
      * @param $file
      * @param $line
+     * @param $trace
      */
-    public static function onError($code, $message, $file, $line)
+    public static function onError($code, $message, $file, $line, $trace = array())
     {
+        $code = $code ? $code : Code::SYSTEM_ERROR;
+        $trace = $trace ? $trace : debug_backtrace();
+
         Log::error(array(
             'code' => $code,
             'message' => $message,
             'file' => $file,
-            'line' => $line
+            'line' => $line,
+            'trace' => $trace
         ));
 
         Output::error($code, $message);

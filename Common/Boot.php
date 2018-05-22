@@ -22,6 +22,9 @@ if (!defined('PATH_ROOT')) die('PATH_ROOT undefined');
 !defined('PATH_MODEL') && define('PATH_MODEL', PATH_APP . '/Model');
 !defined('PATH_VIEW') && define('PATH_VIEW', PATH_APP . '/View');
 
+//定义是否WINDOWS系统
+define('IS_WIN', strstr(PHP_OS, 'WIN') ? 1 : 0);
+
 //加载几个必要文件
 include(PATH_FWK . '/Common/Const.php');
 include(PATH_FWK . '/Common/Functions.php');

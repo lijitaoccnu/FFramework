@@ -27,6 +27,7 @@ class DbDriver
     protected $offset = null;
     protected $limit = null;
     protected $params = array();
+    protected $options = array();
 
     public function __construct($pdo, $table)
     {
@@ -41,9 +42,10 @@ class DbDriver
         return $this;
     }
 
-    public function insert($data)
+    public function insert($data, $delay = false)
     {
         $this->action = 'INSERT';
+        $this->options['delay'] = $delay;
         $this->data = $data;
         return $this;
     }
@@ -100,9 +102,11 @@ class DbDriver
 
         switch ($this->action) {
             case 'INSERT':
+                $fix = 'IGNORE';
+                if ($this->options['delay']) $fix = 'DELAYED';
                 $sets = $builder->sets($this->data, $this->params);
                 if (!$sets) $this->throwException('sets is empty');
-                $sql = "INSERT IGNORE INTO {$this->table} SET {$sets}";
+                $sql = "INSERT {$fix} INTO {$this->table} SET {$sets}";
                 break;
             case 'SELECT':
                 $wheres = $builder->where($this->where, $this->params);
@@ -173,22 +177,28 @@ class DbDriver
     /**
      * 直接执行指定sql
      * @param string $sql SQL语句
+     * @param array $params SQL参数
      * @param int $resultMode 返回值类型
      * @return array|int|\PDOStatement
      */
-    public function query($sql, $resultMode = DBResult::AFFECTED_ROWS)
+    public function query($sql, $params = array(), $resultMode = DBResult::AFFECTED_ROWS)
     {
-        return $this->pdo->query($sql, $resultMode);
+        return $this->pdo->execute($sql, $params, $resultMode, $params ? true : false);
     }
 
     /**
      * 插入多条记录
      * @param array $data 插入数据(二维数组)
+     * @param bool $delay
      * @return int
      */
-    public function insertMulti($data)
+    public function insertMulti($data, $delay = false)
     {
         if (!$data || !is_array($data)) {
+            return 0;
+        }
+
+        if (empty($data[0]) || !is_array($data[0])) {
             return 0;
         }
 
@@ -205,10 +215,11 @@ class DbDriver
 
         if (!$values) return 0;
 
-        $fields = implode(',', $fields);
+        $fields = '`' . implode('`,`', $fields) . '`';
         $values = implode(',', $values);
 
-        $sql = "INSERT IGNORE INTO {$this->table} ({$fields}) VALUES {$values}";
+        $fix = $delay ? 'DELAYED' : 'IGNORE';
+        $sql = "INSERT {$fix} INTO {$this->table} ({$fields}) VALUES {$values}";
 
         return $this->pdo->query($sql, DBResult::AFFECTED_ROWS);
     }

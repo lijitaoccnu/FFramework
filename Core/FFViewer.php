@@ -16,11 +16,15 @@ class FFViewer
     public function __construct()
     {
         $this->setRender(Format::JSON, function ($data) {
-            header("Content-type: application/json; charset=utf-8");
+            if (!is_cli()) {
+                header("Content-type: application/json; charset=utf-8");
+            }
             echo json_encode($data, JSON_UNESCAPED_UNICODE);
         });
         $this->setRender(Format::HTML, function ($data) {
-            header("Content-type: text/html; charset=utf-8");
+            if (!is_cli()) {
+                header("Content-type: text/html; charset=utf-8");
+            }
             FF::getViewer()->tplRendering($data[0], $data[1]);
         });
         $this->initRenders();

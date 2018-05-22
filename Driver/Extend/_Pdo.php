@@ -22,7 +22,7 @@ class _Pdo
             'dsn' => $dsn,
             'username' => $username,
             'passwd' => $passwd,
-            'options' => $options
+            'options' => $options,
         );
     }
 
@@ -37,7 +37,9 @@ class _Pdo
 
         try {
             $config = $this->config;
-            $this->pdo = new \PDO($config['dsn'], $config['username'], $config['passwd'], $config['options']);
+            $options = $config['options'];
+            $options[\PDO::ATTR_PERSISTENT] = true;
+            $this->pdo = new \PDO($config['dsn'], $config['username'], $config['passwd'], $options);
             $this->pdo->setAttribute(\PDO::ATTR_STRINGIFY_FETCHES, false);
             $this->pdo->setAttribute(\PDO::ATTR_EMULATE_PREPARES, false);
             return $this->pdo;
@@ -110,7 +112,7 @@ class _Pdo
 
         $cost = (int)((microtime(true) - $time) * 1000);
         $log = array('cost' => $cost, 'sql' => $sql, 'params' => $params, 'rows' => $row_count);
-        Log::info($log, 'db_query.log');
+        Log::debug($log, 'db_query.log');
 
         return $this->fetchResult($statement, $mode);
     }
